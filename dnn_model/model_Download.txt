@@ -1,0 +1,3 @@
+Gdrive link: https://drive.google.com/drive/folders/1xDhnmXel5fdXTrA0xbRtHDg3uhHlhTIy?usp=sharing
+
+download this file and paste the dnn_model folder where your main.py and objectdetection.py are located
