@@ -1,7 +1,13 @@
 import cv2
+from speed_calc import *
 import numpy as np
 from object_detection import ObjectDetection
 import math
+
+end = 0
+
+# Create Tracker Object
+tracker = EuclideanDistTracker()
 
 # Initialize Object Detection
 od = ObjectDetection()
@@ -13,9 +19,15 @@ center_points_prev_frame = []
 tracking_objects = {}
 track_id = 0
 
-cap = cv2.VideoCapture("/write the path of the video file/")
-f = 25
-w = int(1000 / (f - 1))
+# Taking input
+distance = int(input("Enter the distance:")) # 368
+pixel = int(input("Enter the video quality:")) # 1080
+
+# Calculating distance pixel ratio
+ratio = distance / pixel
+
+cap = cv2.VideoCapture(" ")#Enter the video file path
+
 
 # Create a window to display the video frames
 cv2.namedWindow('frame')
@@ -71,7 +83,7 @@ while True:
         center_points_cur_frame.append((cx, cy))
         detections.append([x, y, w, h])
 
-        cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
 
     # Only at the beginning we compare previous and current frame
     if count <= 2:
@@ -108,9 +120,22 @@ while True:
             tracking_objects[track_id] = pt
             track_id += 1
 
+    # Speed calculation distance
+    dist = ratio * (0.375 * ht)
+
+    # Object Tracking
+    boxes_ids = tracker.update(detections, ht)
+    for box_id in boxes_ids:
+        x, y, w, h, obj_id = box_id
+
+        if ( (tracker.get_speed(obj_id, dist)) != 0 ):
+            cv2.putText(roi,str(tracker.get_speed(obj_id, dist)),(x,y-15), cv2.FONT_HERSHEY_PLAIN,1,(0,255,0),2)
+        cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 255, 0), 3)
+        
+
     # Draw the selected rectangle
     if not selecting and 'rect_start' in globals() and 'rect_end' in globals():
-        cv2.rectangle(frame, rect_start, rect_end, (0, 255, 0), 2)
+        cv2.rectangle(frame, rect_start, rect_end, (255, 0, 0), 2)
         cv2.imshow('frame', frame)
         cv2.imshow('ROI', roi)
         a, b = rect_start
@@ -130,9 +155,10 @@ while True:
     # Make a copy of the points
     center_points_prev_frame = center_points_cur_frame.copy()
 
-    key = cv2.waitKey(w - 10)
+    key = cv2.waitKey(1)
     if key == 27:
         break
+
 
 
 cap.release()
