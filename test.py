@@ -15,8 +15,14 @@ st.title("Speed Cam")
 video_file = st.file_uploader("Upload a video file", type=["mp4"])
 
 # Function to process the video
-def process_video(video_path, distance, pixel):
-    cap = cv2.VideoCapture(video_path)
+def process_video(video_file, distance, pixel):
+    # Convert the file-like object to a OpenCV VideoCapture object
+    video_bytes = video_file.read()
+    video_nparray = np.frombuffer(video_bytes, np.uint8)
+    frame = cv2.imdecode(video_nparray, cv2.IMREAD_COLOR)
+    cap = cv2.VideoCapture()
+    cap.open("output.mp4")
+
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     out = cv2.VideoWriter("output.mp4", cv2.VideoWriter_fourcc(*"mp4v"), 30, (frame_width, frame_height))
