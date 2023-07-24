@@ -20,14 +20,15 @@ tracking_objects = {}
 track_id = 0
 
 # Taking input
-distance = int(input("Enter the distance:")) # 368
-pixel = int(input("Enter the video quality:")) # 1080
+distance = int(input("Enter the distance:"))# 368
+pixel = int(input("Enter the video quality:"))# 1080
 
 # Calculating distance pixel ratio
 ratio = distance / pixel
 
-cap = cv2.VideoCapture(" ")#Enter the video file path
-
+cap = cv2.VideoCapture("Resources/traffic4.mp4") #Enter the file path of video like shown
+f = 25
+w = int(1000 / (f - 1))
 
 # Create a window to display the video frames
 cv2.namedWindow('frame')
@@ -83,7 +84,7 @@ while True:
         center_points_cur_frame.append((cx, cy))
         detections.append([x, y, w, h])
 
-
+        cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
     # Only at the beginning we compare previous and current frame
     if count <= 2:
@@ -121,21 +122,28 @@ while True:
             track_id += 1
 
     # Speed calculation distance
-    dist = ratio * (0.375 * ht)
+    dist = ratio * (0.5 * ht)
 
     # Object Tracking
     boxes_ids = tracker.update(detections, ht)
     for box_id in boxes_ids:
         x, y, w, h, obj_id = box_id
 
-        if ( (tracker.get_speed(obj_id, dist)) != 0 ):
-            cv2.putText(roi,str(tracker.get_speed(obj_id, dist)),(x,y-15), cv2.FONT_HERSHEY_PLAIN,1,(0,255,0),2)
-        cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 255, 0), 3)
-        
+        if tracker.get_speed(obj_id, dist) < tracker.get_speed_limit():
+            cv2.putText(roi,str(tracker.get_speed(obj_id, dist)),(x,y-15), cv2.FONT_HERSHEY_PLAIN,1,(255,255,0),2)
+            cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 255, 0), 3)
+            
+        else:
+            cv2.putText(roi,str(tracker.get_speed(obj_id, dist)),(x, y-15),cv2.FONT_HERSHEY_PLAIN, 1,(0, 0, 255),2)
+            cv2.rectangle(roi, (x, y), (x + w, y + h), (0, 165, 255), 3)
+
+        s = tracker.get_speed(obj_id, dist)
+        if tracker.f[obj_id] == 1 and s != 0:
+            tracker.capture(roi, x, y, h, w, s, obj_id)
 
     # Draw the selected rectangle
     if not selecting and 'rect_start' in globals() and 'rect_end' in globals():
-        cv2.rectangle(frame, rect_start, rect_end, (255, 0, 0), 2)
+        cv2.rectangle(frame, rect_start, rect_end, (0, 255, 0), 2)
         cv2.imshow('frame', frame)
         cv2.imshow('ROI', roi)
         a, b = rect_start
@@ -155,11 +163,14 @@ while True:
     # Make a copy of the points
     center_points_prev_frame = center_points_cur_frame.copy()
 
-    key = cv2.waitKey(1)
+    key = cv2.waitKey(w - 10)
     if key == 27:
+        tracker.end()
+        end = 1
         break
 
-
+if end != 1:
+    tracker.end()
 
 cap.release()
 cv2.destroyAllWindows()
