@@ -20,7 +20,7 @@ tracking_objects = {}
 track_id = 0
 
 # Taking input
-distance = int(input("Enter the distance:"))# 368
+distance = int(input("Enter the distance:"))# 1332
 pixel = int(input("Enter the video quality:"))# 1080
 
 # Calculating distance pixel ratio
